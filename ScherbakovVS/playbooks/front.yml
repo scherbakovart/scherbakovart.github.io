@@ -1,0 +1,15 @@
+---
+- name: Установка nginx
+  hosts: front
+  tasks:
+    - name: install nginx
+      apk: name=nginx update_cache=yes
+
+    - name: config nginx
+      copy: src=files/nginx.conf dest=/etc/nginx/conf.d/default.conf
+      
+    - name: copy index.html
+      copy: src=files/index.html dest=/var/www/index.html
+      
+    - name: restart nginx
+      service: name=nginx state=restarted

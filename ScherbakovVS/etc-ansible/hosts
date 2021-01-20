@@ -1,0 +1,5 @@
+[front]
+nginx.local
+
+[db]
+mysql.local

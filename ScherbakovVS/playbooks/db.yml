@@ -1,0 +1,64 @@
+---
+- name: Установка БД
+  hosts: db
+  tasks:
+  
+    - name: install mariadb
+      apk: 
+        name: mariadb 
+        state: present
+        update_cache: yes
+
+    - name: stop mariadb
+      service: name=mariadb state=stopped
+
+    - name: install mariadb-client
+      apk: 
+        name: mariadb-client 
+        state: present
+        update_cache: yes
+
+    - name: setup databases      
+      shell: service mariadb setup 
+
+    - name: copy db client config
+      copy: src=files/client.cnf dest=/root/.my.cnf
+
+    - name: copy db server config
+      copy: src=files/db.cnf dest=/etc/my.cnf
+
+    - name: start mariadb
+      service: name=mariadb state=started
+
+    - name: create user
+      shell: mysql -u root -e "DROP USER root@localhost; CREATE USER root@localhost IDENTIFIED BY 'password'; GRANT ALL ON *.* TO root@localhost WITH GRANT OPTION;"
+
+    - name: add community repository
+      lineinfile:
+        path: /etc/apk/repositories
+        line: http://mirror.yandex.ru/mirrors/alpine/v3.12/community
+
+    - name: install pip
+      apk:
+        name: py3-pip
+        state: present
+        update_cache: yes
+
+    - name: Make sure pymysql is present
+      pip:
+        name: pymysql
+        state: present
+        
+    - name: Create database user with name 'bob' and password '12345' with all database privileges
+      mysql_user:
+        name: bob
+        password: 12345
+        priv: '*.*:ALL'
+        state: present        
+    
+    - name: Create a new database with name 'bobdata'
+      mysql_db:
+        login_password: password
+        login_user: root
+        name: bobdata
+        state: present
